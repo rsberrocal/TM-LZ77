@@ -3,6 +3,7 @@ import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Random;
 
 public class Main {
     static int MDES = 0;
@@ -65,7 +66,6 @@ public class Main {
     public static String parseInt(int n, int bits){
         StringBuilder res = new StringBuilder();
         String b = Integer.toBinaryString(n);
-        int x = Integer.parseInt(b);
         if (b.length() < bits){
             for (int i = b.length(); i < bits; i++){
                 res.append("0");
@@ -103,7 +103,6 @@ public class Main {
                     int L = aux; // Recogemos la longitud del match encontrado
                     // Lo añadimos al resultado
                     res.append("(" + parseInt(L,MENT) + "," + parseInt(D, MDES) + ")");
-                    System.out.println(parseBit(parseInt(L,MENT),MENT));
                     //Miramos si estamos en la parte final y nos queda algo restante
                     if ((idxEnt + MENT) == input.length() && L != MENT){
                         // Añadimos lo que quede
@@ -130,11 +129,49 @@ public class Main {
         return res.toString();
     }
 
+    public static String unCompress(String input) {
+        String res = "";
+        for(int i = 0; i<input.length();i++){  //pasa por t odo el input
+            boolean modeCompact = false;        //modeCompact es para indicar que se tiene que hacer el protocolo de union
+            String longi="", despl = "";
+
+            if(input.charAt(i) == '('){  //indica al finalizar i iniciar del protocolo
+                modeCompact = true;
+            }else if(input.charAt(i) == ')'){
+                modeCompact = false;
+            }
+            if(!modeCompact && (input.charAt(i) == '0' || input.charAt(i) == '1')){
+                res += input.charAt(i);     //en caso que el protocolo no este activo se añade los bits
+            }
+            if(modeCompact){        //protocolo activo
+                longi = input.substring(i+1,i+7);       //sacamos el valor de los numeros entre los parentesis
+                int nlongi = Integer.parseInt(longi, 2);
+                despl = input.substring(i+9, i+16);
+                int ndespl =Integer.parseInt(despl, 2);
+
+                String inc = "";
+                int compte = 0;
+                while(compte != nlongi){
+                    inc += res.charAt(res.length()-ndespl+compte); //va recorriendo el string añadiendo de izquierda a derecha
+                    //hasta que compte sea igual a la distancia que queriamos utilizar.
+                    compte += 1;
+                }
+                res += inc;  //incrementamos al resultado
+                i += 15;  //saltamos los parentesis
+            }
+        }
+        return res;
+    }
+
     /**
      * @param args
      */
     public static void main(String[] args) {
         readFile();
+        Random rand = new Random();
+        int random = rand.nextInt(33554432);
+        String numRandom = parseInt(random, 25);
+
         if (MENT > MDES) {
             System.out.println("Error en la configuracion.");
             System.out.println("La ventana de entrada es mayor a la deslizante");
@@ -142,7 +179,17 @@ public class Main {
         }
         // PILLAR ENTRADA
         String input = "11011100101001111010100010001";
-        System.out.println("coding " + compress(input));
+        String compression = compress(input);
+
+        System.out.println("Numero: "+ input);
+        System.out.println("Coding: " + compression);
+        System.out.println("Uncode: " + unCompress(compression));
+
+        System.out.println("Numero aleatori de 25 bits: "+ numRandom);
+        String randomCompression = compress(numRandom);
+        System.out.println("Coding numero aleatori: "+ randomCompression);
+        System.out.println("Uncoding numero aleatori: "+ unCompress(randomCompression));
+
         if (MENT + MDES > input.length()) {
             System.out.println("Error en la configuracion.");
             System.out.println("La ventana total es mayor al input");
