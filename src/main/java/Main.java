@@ -10,6 +10,21 @@ public class Main {
     static int MENT = 0;
     static String filenameInput = "data.txt";
 
+    public static boolean isValid(int x)
+    {
+        return (x != 0) && ((x & (x - 1)) == 0);
+    }
+
+
+    public static String readDataFromFile(String file){
+        return lz77.TxtReader.cargarTxt(file).toString();
+    }
+
+    public static String getAscii(String data){
+        StringBuffer stringBuffer = new StringBuffer(data);
+        return lz77.TxtReader.ASCIIbin2string(stringBuffer).toString();
+    }
+
     public static void readFile() {
         BufferedReader reader;
         try {
@@ -19,14 +34,14 @@ public class Main {
                 String[] data = line.split(",");
                 if (data[0].equals("Ment")) {
                     int ment = Integer.parseInt(data[1]);
-                    if (ment % 2 != 0) {
+                    if (!isValid(ment)) {
                         System.out.println("Parametro Ment incorrecto!");
                     } else {
                         MENT = ment;
                     }
                 } else if (data[0].equals("Mdes")) {
                     int mdes = Integer.parseInt(data[1]);
-                    if (mdes % 2 != 0) {
+                    if (!isValid(mdes)) {
                         System.out.println("Parametro Ment incorrecto!");
                     } else {
                         MDES = mdes;
@@ -49,6 +64,16 @@ public class Main {
         }
     }
 
+    public static int log2(int N)
+    {
+
+        // calculate log2 N indirectly
+        // using log() method
+        int result = (int)(Math.log(N) / Math.log(2));
+
+        return result;
+    }
+
     public static int parseBit(String bits, int aux){
         int res = 0;
         //Si no existe ningun 1, significa que son todos 0
@@ -57,7 +82,8 @@ public class Main {
         }
         for(int i = bits.length() - 1; i >= 0; i--){
             if (bits.charAt(i) == '1'){
-                res += Math.pow(2, bits.length() - i);
+                int exp = bits.length() - 1 - i;
+                res += Math.pow(2, exp);
             }
         }
         return res;
@@ -72,19 +98,21 @@ public class Main {
             }
             res.append(b);
         }else {
-            res.append(b,b.length() - bits,b.length());
+            res.append(b,b.length() - bits, b.length());
         }
         return res.toString();
     }
 
     public static String compress(String input) {
+        System.out.println("Comprimiendo...");
+        long startTime = System.nanoTime();
+
         int idxDes = 0; // La ventana deslizante empieza en el 0
         int idxEnt = MDES; // La ventana de entrada empieza donde acaba la ventana deslizante
         StringBuilder res = new StringBuilder();
         res.append(input, 0, MDES);// Empezamos la compresion con la ventana deslizante
         res.append(",");
         // Mientras no hayamos llegado al final
-        int l = input.length();
         while ((idxEnt + MENT) <= input.length()) {
             // Vamos compromiendo
             // Cogemos las ventanas del input encontrado
@@ -96,17 +124,19 @@ public class Main {
             // Miramos si en la ventana de entrada tenemos un match
             while (aux > 1 && !hasMatch) {
                 // Miramos si la cadena actual de la ventana de entrada existe dentro de la ventana deslizante
-                String actual = wEnt.substring(0, aux);
+                String c = wEnt.substring(0, aux);
                 if (wDes.contains(wEnt.substring(0, aux))) {
                     // Match
                     int D = MDES - wDes.lastIndexOf(wEnt.substring(0, aux)); // Recogemos la distancia
                     int L = aux; // Recogemos la longitud del match encontrado
                     // Lo añadimos al resultado
-                    res.append("(" + parseInt(L,MENT) + "," + parseInt(D, MDES) + ")");
+                    //res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MENT)) + ")");
+                    res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MDES)) + ")");
                     //Miramos si estamos en la parte final y nos queda algo restante
                     if ((idxEnt + MENT) == input.length() && L != MENT){
                         // Añadimos lo que quede
                         res.append(input,idxEnt + L, input.length());
+                        L = MENT;
                     }
 
                     // Marcamos match
@@ -126,41 +156,42 @@ public class Main {
                 idxEnt++;
             }
         }
+        // Miramos el restante
+        if (idxEnt != input.length()){
+            res.append(input, idxEnt, input.length());
+        }
+        long stopTime = System.nanoTime();
+        System.out.println("Datos comprimidos.");
+        System.out.println("Tiempo: " + (stopTime - startTime) + " ns");
         return res.toString();
     }
 
     public static String unCompress(String input) {
-        String res = "";
+        StringBuilder res = new StringBuilder();
         for(int i = 0; i<input.length();i++){  //pasa por t odo el input
             boolean modeCompact = false;        //modeCompact es para indicar que se tiene que hacer el protocolo de union
             String longi="", despl = "";
-
             if(input.charAt(i) == '('){  //indica al finalizar i iniciar del protocolo
                 modeCompact = true;
             }else if(input.charAt(i) == ')'){
                 modeCompact = false;
             }
             if(!modeCompact && (input.charAt(i) == '0' || input.charAt(i) == '1')){
-                res += input.charAt(i);     //en caso que el protocolo no este activo se añade los bits
+                res.append(input.charAt(i));     //en caso que el protocolo no este activo se añade los bits
             }
+            char x = input.charAt(i);
             if(modeCompact){        //protocolo activo
-                longi = input.substring(i+1,i+7);       //sacamos el valor de los numeros entre los parentesis
-                int nlongi = Integer.parseInt(longi, 2);
-                despl = input.substring(i+9, i+16);
-                int ndespl =Integer.parseInt(despl, 2);
+                longi = input.substring(i + 1, i + 1 + log2(MENT));       //sacamos el valor de los numeros entre los parentesis
+                int nlongi = parseBit(longi, MENT);
+                despl = input.substring(i + 2 + log2(MENT), i + 2 + log2(MENT) + log2(MDES));
+                int ndespl = parseBit(despl, MDES);
 
-                String inc = "";
-                int compte = 0;
-                while(compte != nlongi){
-                    inc += res.charAt(res.length()-ndespl+compte); //va recorriendo el string añadiendo de izquierda a derecha
-                    //hasta que compte sea igual a la distancia que queriamos utilizar.
-                    compte += 1;
-                }
-                res += inc;  //incrementamos al resultado
-                i += 15;  //saltamos los parentesis
+                String a = res.substring((res.length()) -ndespl, (res.length()) -ndespl + nlongi);
+                res.append(a);
+                i = i + 2 + log2(MENT) + log2(MDES);
             }
         }
-        return res;
+        return res.toString();
     }
 
     /**
@@ -168,19 +199,30 @@ public class Main {
      */
     public static void main(String[] args) {
         readFile();
-        Random rand = new Random();
-        int random = rand.nextInt(33554432);
-        String numRandom = parseInt(random, 25);
-
         if (MENT > MDES) {
             System.out.println("Error en la configuracion.");
             System.out.println("La ventana de entrada es mayor a la deslizante");
             System.exit(0);
         }
-        // PILLAR ENTRADA
-        String input = "11011100101001111010100010001";
-        String compression = compress(input);
+        String data = readDataFromFile("text/quijote_short.txt");
+        System.out.println(data);
+        System.out.println(getAscii(data));
+        String compression = compress(data);
+        System.out.println(compression);
+        String des = unCompress(compression);
+        System.out.println(des);
+        System.out.println(getAscii(des));
+        /*Random rand = new Random();
+        int random = rand.nextInt(33554432);
+        String numRandom = parseInt(random, log2(33554432));
 
+
+        // PILLAR ENTRADA
+        //String input = "11011100101001111010100010001";
+        String input = "1100000001000001111011000"; // probar
+        String compression = compress(input);
+        int y =log2(MENT);
+        int x =log2(MDES);
         System.out.println("Numero: "+ input);
         System.out.println("Coding: " + compression);
         System.out.println("Uncode: " + unCompress(compression));
@@ -194,7 +236,7 @@ public class Main {
             System.out.println("Error en la configuracion.");
             System.out.println("La ventana total es mayor al input");
             System.exit(0);
-        }
+        }*/
 
 
     }
