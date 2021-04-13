@@ -42,7 +42,7 @@ public class Main {
                 } else if (data[0].equals("Mdes")) {
                     int mdes = Integer.parseInt(data[1]);
                     if (!isValid(mdes)) {
-                        System.out.println("Parametro Ment incorrecto!");
+                        System.out.println("Parametro Mdes incorrecto!");
                     } else {
                         MDES = mdes;
                     }
