@@ -22,3 +22,19 @@ En estas imágenes se puede observar una serie de resultados según el 2^MDES, 2
 
 
 3.Comprimid ahora el archivo “quijote_short.txt” y analizad para qué combinación de Mdes y Ment se obtiene el mejor factor de compresión. ¿Es el mismo que en el caso anterior? Proponed varias razones que expliquen esta diferencia.
+
+| MDES        | MENT           | ratio  |
+| ----------- |:--------------:| ------:|
+|	8	|	4	|	0.5965270684371808	|
+|	8	|	8	|	0.5368351936966513	|
+|	16	|	8	|	0.5791598781610824	|
+|	32	|	16	|	0.617056603773585	|
+|	64	|	16	|	0.7175706512199403	|
+|	256	|	128	|	0.742327946250227	|
+|	1024	|	512	|	0.9074361820199778	|
+|	4096	|	2048	|	0.9941634241245136	|
+
+
+Viendo los resultados se ve que con ventanas mas grandes el resultado tiende mas a 1. A pesar de obtener un mejor resultado su tiempo de ejecucion es mayor, debido a que las comparaciones que se hacen son mayores por la ventana de entrada.
+
+Con ventanas mas pequeñas el ratio es menor debido a que el resultado comprimido es mayor que al original

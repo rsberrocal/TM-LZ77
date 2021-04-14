@@ -1,2 +1,2 @@
-Mdes,128
+Mdes,32
 Ment,16

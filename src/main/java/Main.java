@@ -214,7 +214,7 @@ public class Main {
         String data = readDataFromFile("text/quijote_short.txt");
         String compression = compress(data, true);
 
-        String compressNoFormat = compress(data, false);
+        String compressNoFormat = compress(data, false);// Se comprime otra vez para obtener el resultado sin el formato de ,(L,D),
         double compressRatio = (double) data.length() / compressNoFormat.length();
         System.out.println("Compress ratio: " + compressRatio);
 
@@ -222,6 +222,7 @@ public class Main {
         if (!des.equals(data)){
             System.out.println("Error al descomprimir");
         }
+
         /*System.out.println(des);
         System.out.println(getAscii(des));
 
