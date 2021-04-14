@@ -1,5 +1,6 @@
 import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 
+import javax.sound.midi.Soundbank;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -103,7 +104,7 @@ public class Main {
         return res.toString();
     }
 
-    public static String compress(String input) {
+    public static String compress(String input, boolean needFormat) {
         System.out.println("Comprimiendo...");
         long startTime = System.nanoTime();
 
@@ -111,7 +112,9 @@ public class Main {
         int idxEnt = MDES; // La ventana de entrada empieza donde acaba la ventana deslizante
         StringBuilder res = new StringBuilder();
         res.append(input, 0, MDES);// Empezamos la compresion con la ventana deslizante
-        res.append(",");
+        if (needFormat){
+            res.append(",");
+        }
         // Mientras no hayamos llegado al final
         while ((idxEnt + MENT) <= input.length()) {
             // Vamos compromiendo
@@ -131,7 +134,11 @@ public class Main {
                     int L = aux; // Recogemos la longitud del match encontrado
                     // Lo añadimos al resultado
                     //res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MENT)) + ")");
-                    res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MDES)) + ")");
+                    if (needFormat){
+                        res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MDES)) + ")");
+                    } else {
+                        res.append(parseInt(L,log2(MENT)) + parseInt(D, log2(MDES)));
+                    }
                     //Miramos si estamos en la parte final y nos queda algo restante
                     if ((idxEnt + MENT) == input.length() && L != MENT){
                         // Añadimos lo que quede
@@ -205,14 +212,20 @@ public class Main {
             System.exit(0);
         }
         String data = readDataFromFile("text/quijote_short.txt");
-        System.out.println(data);
-        System.out.println(getAscii(data));
-        String compression = compress(data);
-        System.out.println(compression);
+        String compression = compress(data, true);
+
+        String compressNoFormat = compress(data, false);
+        double compressRatio = (double) data.length() / compressNoFormat.length();
+        System.out.println("Compress ratio: " + compressRatio);
+
         String des = unCompress(compression);
-        System.out.println(des);
+        if (!des.equals(data)){
+            System.out.println("Error al descomprimir");
+        }
+        /*System.out.println(des);
         System.out.println(getAscii(des));
-        /*Random rand = new Random();
+
+        Random rand = new Random();
         int random = rand.nextInt(33554432);
         String numRandom = parseInt(random, log2(33554432));
 
@@ -231,12 +244,7 @@ public class Main {
         String randomCompression = compress(numRandom);
         System.out.println("Coding numero aleatori: "+ randomCompression);
         System.out.println("Uncoding numero aleatori: "+ unCompress(randomCompression));
-
-        if (MENT + MDES > input.length()) {
-            System.out.println("Error en la configuracion.");
-            System.out.println("La ventana total es mayor al input");
-            System.exit(0);
-        }*/
+        */
 
 
     }
