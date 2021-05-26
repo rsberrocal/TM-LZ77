@@ -1,7 +1,12 @@
 import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import sun.security.util.ArrayUtil;
 
+import javax.imageio.ImageIO;
 import javax.sound.midi.Soundbank;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
@@ -10,18 +15,50 @@ public class Main {
     static int MDES = 0;
     static int MENT = 0;
     static String filenameInput = "data.txt";
+    static BufferedImage image = null;
 
-    public static boolean isValid(int x)
-    {
+    public static boolean isValid(int x) {
         return (x != 0) && ((x & (x - 1)) == 0);
     }
 
 
-    public static String readDataFromFile(String file){
-        return lz77.TxtReader.cargarTxt(file).toString();
+    public static String readDataFromFile(String file) {
+        //return lz77.TxtReader.cargarTxt(file).toString(); Usado en comprension de texto por fichero
+        try {
+            image = ImageIO.read(new File(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Creamos 3 arrays, uno para cada color
+        int[] red = new int[image.getHeight() * image.getWidth()];
+        int[] blue = new int[image.getHeight() * image.getWidth()];
+        int[] green = new int[image.getHeight() * image.getWidth()];
+        int aux = 0;
+        // Recorremos cada pixel y nos guardamos su valor
+        for (int i = 0; i < image.getWidth(); i++) {
+            for (int j = 0; j < image.getHeight(); j++) {
+                Color c = new Color(image.getRGB(i, j));
+                red[aux] = c.getRed();
+                green[aux] = c.getGreen();
+                blue[aux] = c.getBlue();
+                aux++;
+            }
+        }
+        // Concatenamos todos
+        int[] result =  new int[image.getHeight() * image.getWidth() * 3];
+        System.arraycopy(red, 0, result, 0, red.length);
+        System.arraycopy(green, 0, result, red.length, green.length);
+        System.arraycopy(blue, 0, result, green.length, blue.length);
+
+        StringBuilder binary = new StringBuilder();
+        for (int j : result) {
+            binary.append(Integer.toBinaryString(j));
+        }
+
+        return binary.toString();
     }
 
-    public static String getAscii(String data){
+    public static String getAscii(String data) {
         StringBuffer stringBuffer = new StringBuffer(data);
         return lz77.TxtReader.ASCIIbin2string(stringBuffer).toString();
     }
@@ -65,24 +102,23 @@ public class Main {
         }
     }
 
-    public static int log2(int N)
-    {
+    public static int log2(int N) {
 
         // calculate log2 N indirectly
         // using log() method
-        int result = (int)(Math.log(N) / Math.log(2));
+        int result = (int) (Math.log(N) / Math.log(2));
 
         return result;
     }
 
-    public static int parseBit(String bits, int aux){
+    public static int parseBit(String bits, int aux) {
         int res = 0;
         //Si no existe ningun 1, significa que son todos 0
-        if (!bits.contains("1")){
+        if (!bits.contains("1")) {
             return aux;
         }
-        for(int i = bits.length() - 1; i >= 0; i--){
-            if (bits.charAt(i) == '1'){
+        for (int i = bits.length() - 1; i >= 0; i--) {
+            if (bits.charAt(i) == '1') {
                 int exp = bits.length() - 1 - i;
                 res += Math.pow(2, exp);
             }
@@ -90,16 +126,16 @@ public class Main {
         return res;
     }
 
-    public static String parseInt(int n, int bits){
+    public static String parseInt(int n, int bits) {
         StringBuilder res = new StringBuilder();
         String b = Integer.toBinaryString(n);
-        if (b.length() < bits){
-            for (int i = b.length(); i < bits; i++){
+        if (b.length() < bits) {
+            for (int i = b.length(); i < bits; i++) {
                 res.append("0");
             }
             res.append(b);
-        }else {
-            res.append(b,b.length() - bits, b.length());
+        } else {
+            res.append(b, b.length() - bits, b.length());
         }
         return res.toString();
     }
@@ -112,7 +148,7 @@ public class Main {
         int idxEnt = MDES; // La ventana de entrada empieza donde acaba la ventana deslizante
         StringBuilder res = new StringBuilder();
         res.append(input, 0, MDES);// Empezamos la compresion con la ventana deslizante
-        if (needFormat){
+        if (needFormat) {
             res.append(",");
         }
         // Mientras no hayamos llegado al final
@@ -134,15 +170,15 @@ public class Main {
                     int L = aux; // Recogemos la longitud del match encontrado
                     // Lo añadimos al resultado
                     //res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MENT)) + ")");
-                    if (needFormat){
-                        res.append("(" + parseInt(L,log2(MENT)) + "," + parseInt(D, log2(MDES)) + ")");
+                    if (needFormat) {
+                        res.append("(" + parseInt(L, log2(MENT)) + "," + parseInt(D, log2(MDES)) + ")");
                     } else {
-                        res.append(parseInt(L,log2(MENT)) + parseInt(D, log2(MDES)));
+                        res.append(parseInt(L, log2(MENT)) + parseInt(D, log2(MDES)));
                     }
                     //Miramos si estamos en la parte final y nos queda algo restante
-                    if ((idxEnt + MENT) == input.length() && L != MENT){
+                    if ((idxEnt + MENT) == input.length() && L != MENT) {
                         // Añadimos lo que quede
-                        res.append(input,idxEnt + L, input.length());
+                        res.append(input, idxEnt + L, input.length());
                         L = MENT;
                     }
 
@@ -164,7 +200,7 @@ public class Main {
             }
         }
         // Miramos el restante
-        if (idxEnt != input.length()){
+        if (idxEnt != input.length()) {
             res.append(input, idxEnt, input.length());
         }
         long stopTime = System.nanoTime();
@@ -175,25 +211,25 @@ public class Main {
 
     public static String unCompress(String input) {
         StringBuilder res = new StringBuilder();
-        for(int i = 0; i<input.length();i++){  //pasa por t odo el input
+        for (int i = 0; i < input.length(); i++) {  //pasa por t odo el input
             boolean modeCompact = false;        //modeCompact es para indicar que se tiene que hacer el protocolo de union
-            String longi="", despl = "";
-            if(input.charAt(i) == '('){  //indica al finalizar i iniciar del protocolo
+            String longi = "", despl = "";
+            if (input.charAt(i) == '(') {  //indica al finalizar i iniciar del protocolo
                 modeCompact = true;
-            }else if(input.charAt(i) == ')'){
+            } else if (input.charAt(i) == ')') {
                 modeCompact = false;
             }
-            if(!modeCompact && (input.charAt(i) == '0' || input.charAt(i) == '1')){
+            if (!modeCompact && (input.charAt(i) == '0' || input.charAt(i) == '1')) {
                 res.append(input.charAt(i));     //en caso que el protocolo no este activo se añade los bits
             }
             char x = input.charAt(i);
-            if(modeCompact){        //protocolo activo
+            if (modeCompact) {        //protocolo activo
                 longi = input.substring(i + 1, i + 1 + log2(MENT));       //sacamos el valor de los numeros entre los parentesis
                 int nlongi = parseBit(longi, MENT);
                 despl = input.substring(i + 2 + log2(MENT), i + 2 + log2(MENT) + log2(MDES));
                 int ndespl = parseBit(despl, MDES);
 
-                String a = res.substring((res.length()) -ndespl, (res.length()) -ndespl + nlongi);
+                String a = res.substring((res.length()) - ndespl, (res.length()) - ndespl + nlongi);
                 res.append(a);
                 i = i + 2 + log2(MENT) + log2(MDES);
             }
@@ -211,43 +247,25 @@ public class Main {
             System.out.println("La ventana de entrada es mayor a la deslizante");
             System.exit(0);
         }
-        String data = readDataFromFile("text/quijote_short.txt");
+        String data = readDataFromFile("cubo_LZ77.bmp");
+        System.out.println(data);
         String compression = compress(data, true);
-
         String compressNoFormat = compress(data, false);// Se comprime otra vez para obtener el resultado sin el formato de ,(L,D),
+        System.out.println("Dato comprimido");
+        System.out.println(compressNoFormat);
+        System.out.println("");
+        System.out.println("Size sin comprimir");
+        System.out.println(data.length());
+        System.out.println("Size comprimido");
+        System.out.println(compressNoFormat.length());
         double compressRatio = (double) data.length() / compressNoFormat.length();
         System.out.println("Compress ratio: " + compressRatio);
 
         String des = unCompress(compression);
-        if (!des.equals(data)){
+
+        if (!des.equals(data)) {
             System.out.println("Error al descomprimir");
         }
-
-        /*System.out.println(des);
-        System.out.println(getAscii(des));
-
-        Random rand = new Random();
-        int random = rand.nextInt(33554432);
-        String numRandom = parseInt(random, log2(33554432));
-
-
-        // PILLAR ENTRADA
-        //String input = "11011100101001111010100010001";
-        String input = "1100000001000001111011000"; // probar
-        String compression = compress(input);
-        int y =log2(MENT);
-        int x =log2(MDES);
-        System.out.println("Numero: "+ input);
-        System.out.println("Coding: " + compression);
-        System.out.println("Uncode: " + unCompress(compression));
-
-        System.out.println("Numero aleatori de 25 bits: "+ numRandom);
-        String randomCompression = compress(numRandom);
-        System.out.println("Coding numero aleatori: "+ randomCompression);
-        System.out.println("Uncoding numero aleatori: "+ unCompress(randomCompression));
-        */
-
-
     }
 
 }
