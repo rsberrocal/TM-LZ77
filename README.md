@@ -11,7 +11,7 @@ Mdes,#
 
 1. Aplicad vuestro compresor LZ77 a los datos contenidos en la imagen BMP que teneis disponible en Campus Virtual. Se trata de una imagen de pequeñas dimensiones y 256 colores. Consejo: Extraed las componentes R,G,B de cada píxel, vectorizádlas (pasad de matriz 2D a vector 1D) y concatenádlas (primero vector de R, despues vector de G y finalmente, vector B). Convertid esta secuencia de enteros de 8 bits a un string binario.
 
-Demostrat en el codi.
+Demostrado en el codigo.
 
 2. Ajustad los tamaños de las ventanas de comporesión entre los valors habituales para lograr compresión. ¿Qué conclusiones sacais?
 
