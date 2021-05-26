@@ -23,33 +23,7 @@ public class Main {
 
 
     public static String readDataFromFile(String file) {
-        //return lz77.TxtReader.cargarTxt(file).toString(); Usado en comprension de texto por fichero
-        try {
-            image = ImageIO.read(new File(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Creamos 3 arrays, uno para cada color
-        int[] red = new int[image.getHeight() * image.getWidth()];
-        int[] blue = new int[image.getHeight() * image.getWidth()];
-        int[] green = new int[image.getHeight() * image.getWidth()];
-        int aux = 0;
-        // Recorremos cada pixel y nos guardamos su valor
-        for (int i = 0; i < image.getWidth(); i++) {
-            for (int j = 0; j < image.getHeight(); j++) {
-                Color c = new Color(image.getRGB(i, j));
-                red[aux] = c.getRed();
-                green[aux] = c.getGreen();
-                blue[aux] = c.getBlue();
-                aux++;
-            }
-        }
-        // Concatenamos todos
-        int[] result =  new int[image.getHeight() * image.getWidth() * 3];
-        System.arraycopy(red, 0, result, 0, red.length);
-        System.arraycopy(green, 0, result, red.length, green.length);
-        System.arraycopy(blue, 0, result, green.length, blue.length);
-
+        int [] result = WavReader.Wav2Array(file);
         StringBuilder binary = new StringBuilder();
         for (int j : result) {
             binary.append(Integer.toBinaryString(j));
@@ -247,7 +221,7 @@ public class Main {
             System.out.println("La ventana de entrada es mayor a la deslizante");
             System.exit(0);
         }
-        String data = readDataFromFile("cubo_LZ77.bmp");
+        String data = readDataFromFile("audio.wav");
         System.out.println(data);
         String compression = compress(data, true);
         String compressNoFormat = compress(data, false);// Se comprime otra vez para obtener el resultado sin el formato de ,(L,D),
