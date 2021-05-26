@@ -9,32 +9,23 @@ Ment,#
 Mdes,#
 
 
-Para ejectuarlo se puede usar el siguiente comando
-java -jar target/TM-LZ77-LZ77.jar
+1. Aplicad vuestro compresor LZ77 a los datos contenidos en la imagen BMP que teneis disponible en Campus Virtual. Se trata de una imagen de pequeñas dimensiones y 256 colores. Consejo: Extraed las componentes R,G,B de cada píxel, vectorizádlas (pasad de matriz 2D a vector 1D) y concatenádlas (primero vector de R, despues vector de G y finalmente, vector B). Convertid esta secuencia de enteros de 8 bits a un string binario.
 
-Preguntas a responder:
+Demostrat en el codi.
 
-2.Comprimid el archivo “hamlet_short.txt” con distintos valores de Mdes y Ment entre 4 y 4096 y analizad el factor de compresión y el tiempo invertido para conseguirlo. ¿Cuál es el mejor factor de compresión que obtenéis y con qué valores de Mdes y Ment? ¿Cómo varia (cómo escala) el tiempo de cálculo necesario al aumentar Mdes y Ment? ¿Qué combinación de Mdes y Ment elegiríais?
+2. Ajustad los tamaños de las ventanas de comporesión entre los valors habituales para lograr compresión. ¿Qué conclusiones sacais?
 
-![Grafiques](https://user-images.githubusercontent.com/31955883/114478041-b0318a80-9bfd-11eb-8309-5f0df6048fe4.png)
-En estas imágenes se puede observar una serie de resultados según el 2^MDES, 2^MENT y el tiempo en segundos. Donde podemos ver que sale una aproximación de solo 2 decimales, por ejemplo la opción A, no es que ha tardado 0 segundos, sino que ha tardado inferior a 0,00s, pero podemos ver la diferencia entre los demás igualmente, se puede ver que al hacer las ventanas más grandes más tarda, según lo que hemos visto beneficia tener un MENT pequeño pero no muy diferente a MDES. 
+Los valores que valen la pena para hacer la comprension dentro del rango 0 -> 1024 son estos:
 
+![image info](./images/WORTHSCORES.PNG)
 
+De donde podemos extraer los mejores resultados: 
 
-3.Comprimid ahora el archivo “quijote_short.txt” y analizad para qué combinación de Mdes y Ment se obtiene el mejor factor de compresión. ¿Es el mismo que en el caso anterior? Proponed varias razones que expliquen esta diferencia.
+![image info](./images/BESTSCORES.PNG)
 
-| MDES        | MENT           | ratio  |
-| ----------- |:--------------:| ------:|
-|	8	|	4	|	0.5965270684371808	|
-|	8	|	8	|	0.5368351936966513	|
-|	16	|	8	|	0.5791598781610824	|
-|	32	|	16	|	0.617056603773585	|
-|	64	|	16	|	0.7175706512199403	|
-|	256	|	128	|	0.742327946250227	|
-|	1024	|	512	|	0.9074361820199778	|
-|	4096	|	2048	|	0.9941634241245136	|
+![image info](./images/Linears.PNG)
 
+Estas graficas se basan en: ( MDES, MENT, numero de bits en miles ).
 
-Viendo los resultados se ve que con ventanas mas grandes el resultado tiende mas a 1. A pesar de obtener un mejor resultado su tiempo de ejecucion es mayor, debido a que las comparaciones que se hacen son mayores por la ventana de entrada.
-
-Con ventanas mas pequeñas el ratio es menor debido a que el resultado comprimido es mayor que al original
+Donde podemos ver que se puede trazar una linea más o menos de los mejores resultados. Al hacerse mayor la distancia en desde el punto 0,0 siguiendo la línea, mejor resultado de compresión da.
+Por ejemplo, el mejor resultado (1024, 128) nos da un comprensión ratio de 2.2395712495939866, mientras unos de los mejores resultados más cercanos al 0,0, (128,32) nos da uno de 1.6007230034491908.
